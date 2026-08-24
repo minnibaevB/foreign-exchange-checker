@@ -1,0 +1,57 @@
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('./assets/fonts/jetbrains-mono/jetbrains-mono-variable.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+}
+
+:root {
+  --color-neutral-900: #0a0a0a;
+  --color-neutral-700: #171719;
+  --color-neutral-600: #202022;
+  --color-neutral-500: #2e2e2e;
+  --color-neutral-400: #3d3d3d;
+  --color-neutral-200: #9d9d9d;
+  --color-neutral-100: #c6c6c6;
+  --color-neutral-50: #ffffff;
+  
+  --color-lime-500: #cef739;
+  --color-lime-800: #283300;
+  
+  --color-red-500: #ff4141;
+  --color-green-500: #42eb05;
+
+  --font-mono: 'JetBrains Mono', monospace;
+  
+  font-family: var(--font-mono);
+  color-scheme: dark;
+  background-color: var(--color-neutral-900);
+  color: var(--color-neutral-50);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-neutral-900);
+  color: var(--color-neutral-50);
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+input, button {
+  font-family: inherit;
+}
