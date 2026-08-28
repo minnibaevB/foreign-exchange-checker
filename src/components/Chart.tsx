@@ -1,29 +1,34 @@
 import {
   AreaSeries,
-  createChart,
   ColorType,
-  type CandlestickData,
+  createChart,
+  type Time,
 } from 'lightweight-charts';
 import { useEffect, useRef, useState } from 'react';
+import { type RatesResponse } from '../requests';
+import { transformRatesData } from '../helpers';
+import { type timeFrameType, TIMEFRAMES } from './ChartComponent';
 
-let chart: any = null;
-const initialData = [
-  { time: '2018-12-22', value: 32.51 },
-  { time: '2018-12-23', value: 31.11 },
-  { time: '2018-12-24', value: 27.02 },
-  { time: '2018-12-25', value: 27.32 },
-  { time: '2018-12-26', value: 25.17 },
-  { time: '2018-12-27', value: 28.89 },
-  { time: '2018-12-28', value: 25.46 },
-  { time: '2018-12-29', value: 23.92 },
-  { time: '2018-12-30', value: 22.68 },
-  { time: '2018-12-31', value: 22.67 },
-];
+interface ChartProps {
+  data: RatesResponse[] | null;
+  activeTimeframe: timeFrameType;
+}
+
+export interface TransformedData {
+  time: string;
+  value: number;
+}
+interface TooltipData {
+  x: number;
+  y: number;
+  time: string;
+  value: number;
+}
 
 const colors = {
-  backgroundColor: '#0a0a0a',
+  backgroundColor: '#171719',
   lineColor: '#cef739',
-  textColor: 'white',
+  textColor: 'rgba(255, 255, 255, 0.5)',
   areaTopColor: '#cef739',
   areaBottomColor: 'rgba(7, 15, 36, 0.28)',
 };
@@ -31,103 +36,185 @@ const colors = {
 const { backgroundColor, lineColor, textColor, areaTopColor, areaBottomColor } =
   colors;
 
-export default function Chart() {
-  const chartContainerRef = useRef({} as HTMLDivElement);
-  const [tooltip, setTooltip] = useState<any | null>(null);
+export default function Chart({ data, activeTimeframe }: ChartProps) {
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+  const [tooltip, setTooltip] = useState<TooltipData | null>(null);
+  const lastMonthRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (chart === null) {
-      chart = createChart(chartContainerRef.current, {
-        layout: {
-          background: { type: ColorType.Solid, color: backgroundColor },
-          textColor,
-        },
-        width: chartContainerRef.current.clientWidth,
-        height: 300,
-        handleScale: {
-          mouseWheel: false,
-          pinch: false,
-        },
-        handleScroll: {
-          mouseWheel: false,
-          pressedMouseMove: false,
-          horzTouchDrag: false,
-          vertTouchDrag: false,
-        },
-      });
-      chart.timeScale().fitContent();
-      chart.applyOptions({
-        crosshair: {
-          // hide the horizontal crosshair line
-          horzLine: {
-            visible: false,
-            labelVisible: false,
-          },
-          // hide the vertical crosshair label
-          vertLine: {
-            labelVisible: false,
-          },
-        },
-        grid: {
-          vertLines: {
-            visible: false,
-          },
-          horzLines: {
-            visible: false,
-          },
-        },
-      });
+    const continaer = chartContainerRef.current;
 
-      const newSeries = chart.addSeries(AreaSeries, {
-        lineColor,
-        topColor: areaTopColor,
-        bottomColor: areaBottomColor,
-      });
-      newSeries.setData(initialData);
-
-      chart.subscribeCrosshairMove((param: any) => {
-        if (!param.time || !param.point) {
-          setTooltip(null);
-          return;
-        }
-
-        const candle = param.seriesData.get(newSeries) as
-          | CandlestickData
-          | undefined;
-
-        if (!candle) {
-          setTooltip(null);
-          return;
-        }
-
-        console.log(candle);
-
-        setTooltip({
-          x: param.point.x,
-          y: param.point.y,
-          time: String(param.time),
-          value: candle.value,
-        });
-      });
+    if (!continaer) {
+      return;
     }
 
-    // window.addEventListener('resize', handleResize);
+    const handleResize = () => {
+      chart.applyOptions({
+        width: continaer.clientWidth,
+      });
+    };
 
-    // return () => {
-    //   window.removeEventListener('resize', handleResize);
+    const chart = createChart(continaer, {
+      layout: {
+        background: {
+          type: ColorType.Solid,
+          color: backgroundColor,
+        },
+        textColor,
+        fontFamily: "'JetBrains Mono', monospace",
+        fontSize: 10,
+      },
 
-    //   chart.remove();
-    // };
-  }, []);
+      width: continaer.clientWidth,
+      height: 400,
+
+      handleScale: {
+        mouseWheel: false,
+        pinch: false,
+        axisPressedMouseMove: false,
+      },
+      leftPriceScale: {
+        visible: true,
+        borderVisible: false,
+      },
+
+      rightPriceScale: {
+        visible: false,
+      },
+
+      localization: {
+        priceFormatter: (price: number) => price.toFixed(4),
+      },
+
+      crosshair: {
+        horzLine: {
+          visible: false,
+          labelVisible: false,
+        },
+        vertLine: {
+          labelVisible: false,
+        },
+      },
+
+      grid: {
+        vertLines: {
+          visible: false,
+        },
+        horzLines: {
+          visible: true,
+          style: 4,
+        },
+      },
+
+      timeScale: {
+        tickMarkFormatter: (time: Time) => {
+          if (typeof time !== 'string') {
+            return '';
+          }
+
+          const date = new Date(`${time}T00:00:00`);
+
+          if (
+            activeTimeframe === TIMEFRAMES.mounth ||
+            activeTimeframe === TIMEFRAMES.week ||
+            activeTimeframe === TIMEFRAMES.day
+          ) {
+            return date.toLocaleDateString('en-US', {
+              day: 'numeric',
+              month: 'short',
+            });
+          } else {
+            const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+
+            if (monthKey === lastMonthRef.current) {
+              return '';
+            }
+
+            lastMonthRef.current = monthKey;
+
+            if (activeTimeframe === TIMEFRAMES.years) {
+              return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+              });
+            } else {
+              return date.toLocaleDateString('en-US', {
+                month: 'short',
+              });
+            }
+          }
+        },
+
+        borderVisible: false,
+        fixLeftEdge: true,
+        fixRightEdge: true,
+        rightOffset: 0,
+        minBarSpacing: 0,
+      },
+    });
+
+    const newSeries = chart.addSeries(AreaSeries, {
+      lineColor,
+      topColor: areaTopColor,
+      bottomColor: areaBottomColor,
+      lastValueVisible: false,
+      priceLineVisible: false,
+    });
+
+    const chartData = transformRatesData(data ?? []);
+
+    newSeries.setData(chartData);
+
+    if (
+      activeTimeframe === TIMEFRAMES.day ||
+      activeTimeframe === TIMEFRAMES.mounth ||
+      activeTimeframe === TIMEFRAMES.week
+    ) {
+      chart
+        .timeScale()
+        .setVisibleLogicalRange({ from: -1, to: chartData.length - 1 });
+    }
+
+    chart.subscribeCrosshairMove((param) => {
+      if (!param.time || !param.point) {
+        setTooltip(null);
+        return;
+      }
+
+      const point = param.seriesData.get(newSeries) as
+        | TransformedData
+        | undefined;
+
+      if (!point) {
+        setTooltip(null);
+        return;
+      }
+
+      setTooltip({
+        x: param.point.x,
+        y: param.point.y,
+        time: String(param.time),
+        value: point.value,
+      });
+    });
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+
+      chart.remove();
+    };
+  }, [data, activeTimeframe]);
 
   return (
     <div
+      ref={chartContainerRef}
       style={{
         position: 'relative',
         width: '100%',
-        height: 500,
+        height: 400,
       }}
-      ref={chartContainerRef}
     >
       {tooltip && (
         <div

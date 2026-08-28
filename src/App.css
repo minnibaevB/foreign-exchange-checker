@@ -91,8 +91,21 @@
   padding-left: 140px; /* Leave space for the sticky live badge */
   height: 100%;
   width: 100%;
-  overflow-x: auto;
+  overflow: hidden;
   scrollbar-width: none; /* Hide scrollbars */
+}
+
+.ticker-track {
+  display: flex;
+  width: max-content;
+  flex-shrink: 0;
+
+  animation: ticker-scroll var(--ticker-duration) linear infinite;
+}
+
+.ticker-group {
+  display: flex;
+  flex-shrink: 0;
 }
 
 .ticker-wrapper::-webkit-scrollbar {
@@ -228,6 +241,10 @@
 
 .amount-input-wrapper:focus-within .amount-underline {
   background-color: var(--color-neutral-400);
+}
+
+.currency-picker {
+  position: relative;
 }
 
 .currency-button {
@@ -645,6 +662,16 @@
   to {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+
+@keyframes ticker-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
   }
 }
 

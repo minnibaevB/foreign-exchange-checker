@@ -1,21 +1,17 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import './App.css';
 
 // Import Icons
 import logoIcon from './assets/images/logo.svg';
-import chartLine from './assets/images/chart-line.svg';
-import chartGrid from './assets/images/chart-grid.svg';
 
 // Import Flags
 import { Tab, Tabs, TAB_VALUES } from './components/Tabs';
 import LiveMarketsBar from './components/LiveMarketsBar';
 import Converter from './components/Converter';
-import Chart from './components/Chart';
+import ChartComponent from './components/ChartComponent';
 
 export default function App() {
-  // UI presentation states
   const [activeTab, setActiveTab] = useState<string>(TAB_VALUES.HISTORY);
-  const [activeTimeframe, setActiveTimeframe] = useState<string>('1M');
 
   return (
     <div className="app-container" data-node-id="75:175">
@@ -46,84 +42,7 @@ export default function App() {
           {/* Tabs header bar */}
           <Tabs activeValue={activeTab} onChange={setActiveTab}>
             <Tab value={TAB_VALUES.HISTORY} title="HISTORY">
-              <>
-                {/* Stats and timeframes card below tabs */}
-                <div className="stats-and-timeframe-row" data-node-id="75:483">
-                  <div className="stats-grid" data-node-id="75:484">
-                    <div className="stat-card" data-node-id="75:485">
-                      <p className="stat-label">OPEN</p>
-                      <p className="stat-value">0.8516</p>
-                    </div>
-                    <div className="stat-card" data-node-id="75:488">
-                      <p className="stat-label">LAST</p>
-                      <p className="stat-value">0.8530</p>
-                    </div>
-                    <div className="stat-card" data-node-id="75:491">
-                      <p className="stat-label">CHANGE</p>
-                      <p className="stat-value up">+0.0014</p>
-                    </div>
-                    <div className="stat-card" data-node-id="75:494">
-                      <p className="stat-label">% CHANGE</p>
-                      <p className="stat-value up">▲ +0.16%</p>
-                    </div>
-                  </div>
-
-                  <div className="timeframe-bar" data-node-id="75:497">
-                    {['1D', '1W', '1M', '3M', '1Y', '5Y'].map((tf) => (
-                      <button
-                        key={tf}
-                        className={`timeframe-button ${activeTimeframe === tf ? 'active' : ''}`}
-                        onClick={() => setActiveTimeframe(tf)}
-                      >
-                        {tf}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Rate graph Card */}
-                <div className="chart-card" data-node-id="75:510">
-                  <div className="chart-header">
-                    <h2 className="chart-title">
-                      {/* {sendCurrency.code}/{receiveCurrency.code} */}
-                    </h2>
-                    <p className="chart-meta">
-                      <span>0.8612</span> · MAY 14 16:00 CET
-                    </p>
-                  </div>
-
-                  <div className="chart-body" data-node-id="94:1737">
-                    <div className="chart-row" data-node-id="75:512">
-                      <div className="y-axis" data-node-id="75:520">
-                        <span>0.8612</span>
-                        <span>0.8516</span>
-                        <span>0.0000</span>
-                      </div>
-                      <div className="chart-canvas-area" data-node-id="75:517">
-                        <img
-                          src={chartGrid}
-                          className="chart-grid-svg"
-                          alt=""
-                        />
-                        <img
-                          src={chartLine}
-                          className="chart-line-svg"
-                          alt=""
-                        />
-                      </div>
-                    </div>
-                    <div className="x-axis" data-node-id="75:524">
-                      <span>Apr 14</span>
-                      <span>Apr 21</span>
-                      <span>Apr 28</span>
-                      <span>May 06</span>
-                      <span>May 14</span>
-                    </div>
-                  </div>
-                </div>
-
-                <Chart />
-              </>
+              <ChartComponent />
             </Tab>
             <Tab value={TAB_VALUES.COMPARE} title="COMPARE">
               <div

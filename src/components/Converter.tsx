@@ -1,91 +1,35 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import starIcon from '../assets/images/icon-star.svg';
 import starFilledIcon from '../assets/images/icon-star-filled.svg';
-import chevronDownIcon from '../assets/images/icon-chevron-down.svg';
 import exchangeIcon from '../assets/images/icon-exchange.svg';
-
-interface Currency {
-  code: string;
-  name: string;
-  flag: string;
-  rateToUsd: number; // For clean presentation conversion math
-}
-
-import { flagMap } from '../mock';
+// import { CURRENCIES } from '../mock';
+import Picker from './Picker';
+import { useCurrency, useRates } from '../context/RatesContext';
+import { formatAmount, parseAmount } from '../helpers';
 
 export default function Converter() {
-  const CURRENCIES: Currency[] = [
-    { code: 'USD', name: 'US Dollar', flag: 'us', rateToUsd: 1.0 },
-    { code: 'EUR', name: 'Euro', flag: 'eu', rateToUsd: 1.1723 },
-    { code: 'GBP', name: 'British Pound', flag: 'gb', rateToUsd: 1.3575 },
-    { code: 'JPY', name: 'Japanese Yen', flag: 'jp', rateToUsd: 0.0063 },
-    { code: 'AUD', name: 'Australian Dollar', flag: 'au', rateToUsd: 0.7208 },
-    { code: 'CAD', name: 'Canadian Dollar', flag: 'ca', rateToUsd: 0.7238 },
-    { code: 'CHF', name: 'Swiss Franc', flag: 'ch', rateToUsd: 1.0991 },
-    { code: 'RUB', name: 'Russian Ruble', flag: 'ru', rateToUsd: 0.0105 },
-    { code: 'TRY', name: 'Turkish Lira', flag: 'tr', rateToUsd: 0.0294 },
-    { code: 'CNY', name: 'Chinese Yuan', flag: 'cn', rateToUsd: 0.1378 },
-    { code: 'UAH', name: 'Ukrainian Hryvnia', flag: 'ua', rateToUsd: 0.0242 },
-  ];
   // UI presentation states
-  const [sendAmount, setSendAmount] = useState<string>('1,000');
-  const [sendCurrency, setSendCurrency] = useState<Currency>(CURRENCIES[0]); // USD
-  const [receiveCurrency, setReceiveCurrency] = useState<Currency>(
-    CURRENCIES[1],
-  ); // EUR
+  const { currency, setCurrency } = useCurrency();
+  const currencyRates = useRates();
+  const [sendAmount, setSendAmount] = useState<string>(formatAmount(1000));
+  const [reciveAmount, setReciveAmount] = useState<string>('0');
+  const [currencyRate, setCurrencyRate] = useState<number | null>(null);
   const [isFavorited, setIsFavorited] = useState<boolean>(true);
-  const [showSendDropdown, setShowSendDropdown] = useState<boolean>(false);
-  const [showReceiveDropdown, setShowReceiveDropdown] =
-    useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const sendDropdownRef = useRef<HTMLDivElement>(null);
-  const receiveDropdownRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdowns on outside click
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        sendDropdownRef.current &&
-        !sendDropdownRef.current.contains(event.target as Node)
-      ) {
-        setShowSendDropdown(false);
-      }
-      if (
-        receiveDropdownRef.current &&
-        !receiveDropdownRef.current.contains(event.target as Node)
-      ) {
-        setShowReceiveDropdown(false);
-      }
+    if (currencyRates) {
+      const { rate } = currencyRates[currencyRates.length - 1];
+      setCurrencyRate(rate);
+      setReciveAmount(formatAmount(parseAmount(sendAmount) * rate));
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Format currency with thousands separators
-  const parseAmount = (val: string): number => {
-    const clean = val.replace(/,/g, '');
-    const parsed = parseFloat(clean);
-    return isNaN(parsed) ? 0 : parsed;
-  };
-
-  const formatAmount = (num: number): string => {
-    if (num === 0) return '0';
-    return num.toLocaleString('en-US', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    });
-  };
-
-  // Convert send value to receive value based on rates (interactive UI mockup helper)
-  const currentRate = sendCurrency.rateToUsd / receiveCurrency.rateToUsd;
-  const receiveAmountVal = parseAmount(sendAmount) * currentRate;
-  const receiveAmountFormatted = formatAmount(receiveAmountVal);
+  }, [currencyRates]);
 
   const handleSendAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Keep numbers and commas only
     const val = e.target.value.replace(/[^0-9.]/g, '');
     setSendAmount(val);
+    setReciveAmount(formatAmount(parseAmount(val) * (currencyRate ?? 1)));
   };
 
   const handleSendAmountBlur = () => {
@@ -94,14 +38,11 @@ export default function Converter() {
   };
 
   const handleSwapCurrencies = () => {
-    const temp = sendCurrency;
-    setSendCurrency(receiveCurrency);
-    setReceiveCurrency(temp);
-    // Swap values based on new rate
-    const parsedSend = parseAmount(sendAmount);
-    const newSendAmount =
-      parsedSend * (receiveCurrency.rateToUsd / sendCurrency.rateToUsd);
-    setSendAmount(formatAmount(newSendAmount));
+    //change base and quotes
+    const previousSendAmount = sendAmount;
+    setSendAmount(reciveAmount);
+    setReciveAmount(previousSendAmount);
+    setCurrency({ base: currency.quotes, quotes: currency.base });
     triggerToast(`Swapped send and receive currencies!`);
   };
 
@@ -110,11 +51,11 @@ export default function Converter() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const handleLogConversion = () => {
-    triggerToast(
-      `Logged conversion: ${sendAmount} ${sendCurrency.code} → ${receiveAmountFormatted} ${receiveCurrency.code} at rate ${currentRate.toFixed(4)}`,
-    );
-  };
+  // const handleLogConversion = () => {
+  //   triggerToast(
+  //     `Logged conversion: ${sendAmount} ${sendCurrency.code} → ${receiveAmountFormatted} ${receiveCurrency.code} at rate ${currentRate.toFixed(4)}`,
+  //   );
+  // };
 
   return (
     <div className="converter-section">
@@ -132,6 +73,7 @@ export default function Converter() {
             <div className="converter-row" data-node-id="75:429">
               <div className="amount-input-wrapper">
                 <input
+                  name="amount"
                   type="text"
                   className="amount-input"
                   value={sendAmount}
@@ -143,46 +85,15 @@ export default function Converter() {
               </div>
 
               {/* Currency selector send */}
-              <div style={{ position: 'relative' }} ref={sendDropdownRef}>
-                <button
-                  className="currency-button"
-                  onClick={() => setShowSendDropdown(!showSendDropdown)}
-                  aria-haspopup="listbox"
-                  aria-expanded={showSendDropdown}
-                  data-node-id="184:1939"
-                >
-                  <img
-                    src={flagMap[sendCurrency.flag]}
-                    className="flag-icon"
-                    alt=""
-                  />
-                  <span className="currency-text">{sendCurrency.code}</span>
-                  <img src={chevronDownIcon} className="chevron-down" alt="" />
-                </button>
-                {showSendDropdown && (
-                  <div className="dropdown-overlay" role="listbox">
-                    {CURRENCIES.map((cur) => (
-                      <div
-                        key={`send-${cur.code}`}
-                        className="dropdown-item"
-                        onClick={() => {
-                          setSendCurrency(cur);
-                          setShowSendDropdown(false);
-                        }}
-                        role="option"
-                        aria-selected={sendCurrency.code === cur.code}
-                      >
-                        <img
-                          src={flagMap[cur.flag]}
-                          className="flag-icon"
-                          alt=""
-                        />
-                        <span>{cur.code}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <Picker
+                currency={currency.base}
+                onChange={(currencyBase) =>
+                  setCurrency({
+                    ...currency,
+                    base: currencyBase,
+                  })
+                }
+              />
             </div>
           </div>
 
@@ -206,9 +117,10 @@ export default function Converter() {
             <div className="converter-row" data-node-id="75:445">
               <div className="amount-input-wrapper">
                 <input
+                  name="amount"
                   type="text"
                   className="amount-input receive-amount"
-                  value={receiveAmountFormatted}
+                  value={reciveAmount}
                   readOnly
                   aria-label="Receive amount"
                 />
@@ -216,56 +128,25 @@ export default function Converter() {
               </div>
 
               {/* Currency selector receive */}
-              <div style={{ position: 'relative' }} ref={receiveDropdownRef}>
-                <button
-                  className="currency-button"
-                  onClick={() => setShowReceiveDropdown(!showReceiveDropdown)}
-                  aria-haspopup="listbox"
-                  aria-expanded={showReceiveDropdown}
-                  data-node-id="184:1973"
-                >
-                  <img
-                    src={flagMap[receiveCurrency.flag]}
-                    className="flag-icon"
-                    alt=""
-                  />
-                  <span className="currency-text">{receiveCurrency.code}</span>
-                  <img src={chevronDownIcon} className="chevron-down" alt="" />
-                </button>
-                {showReceiveDropdown && (
-                  <div className="dropdown-overlay" role="listbox">
-                    {CURRENCIES.map((cur) => (
-                      <div
-                        key={`receive-${cur.code}`}
-                        className="dropdown-item"
-                        onClick={() => {
-                          setReceiveCurrency(cur);
-                          setShowReceiveDropdown(false);
-                        }}
-                        role="option"
-                        aria-selected={receiveCurrency.code === cur.code}
-                      >
-                        <img
-                          src={flagMap[cur.flag]}
-                          className="flag-icon"
-                          alt=""
-                        />
-                        <span>{cur.code}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <Picker
+                currency={currency.quotes}
+                onChange={(currencyQuotes) =>
+                  setCurrency({
+                    ...currency,
+                    quotes: currencyQuotes,
+                  })
+                }
+              />
             </div>
           </div>
         </div>
 
         {/* Bottom info row */}
         <div className="converter-bottom" data-node-id="75:466">
-          <p className="rate-info-text" data-node-id="75:471">
+          {/* <p className="rate-info-text" data-node-id="75:471">
             1 {sendCurrency.code} = {currentRate.toFixed(4)}{' '}
             {receiveCurrency.code}
-          </p>
+          </p> */}
 
           <div className="converter-actions">
             {/* FAVORITED togglable button */}
@@ -292,7 +173,7 @@ export default function Converter() {
             {/* LOG CONVERSION button */}
             <button
               className="action-button outline"
-              onClick={handleLogConversion}
+              // onClick={handleLogConversion}
               data-node-id="178:1345"
             >
               LOG CONVERSION
