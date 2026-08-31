@@ -1,10 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import useRequestRates from '../hooks/useRequestRates';
 import { getPeriodDates } from '../helpers';
 import { TIMEFRAMES } from './ChartComponent';
 
 type MarketDirection = 'up' | 'down';
-
 interface Market {
   pair: string;
   value: number;
@@ -12,43 +11,14 @@ interface Market {
   direction: MarketDirection;
 }
 interface TickerGroupProps {
+  markets: Market[];
   hidden?: boolean;
 }
 
-const MAX_DIFF_PAIR_RATES_COUNT = 15;
+const MAX_DIFF_PAIR_RATES_COUNT = 10;
 
-const TickerGroup = ({ hidden = false }: TickerGroupProps) => {
+const TickerGroup = ({ markets, hidden = false }: TickerGroupProps) => {
   const groupRef = useRef<HTMLDivElement>(null);
-  const { data } = useRequestRates({
-    ...getPeriodDates(TIMEFRAMES.day),
-    base: 'USD',
-  });
-  let countPairsWithDiffRates = 0;
-  const pairRates = new Map<string, { rate: number }>();
-  let markets: Market[] = [];
-
-  for (const currency of data ?? []) {
-    if (countPairsWithDiffRates === MAX_DIFF_PAIR_RATES_COUNT) {
-      break;
-    }
-    const key = `${currency.base}/${currency.quote}`;
-    const currentPair = pairRates.get(key);
-    if (currentPair && currency.rate !== currentPair.rate) {
-      const change =
-        ((currency.rate - currentPair.rate) / currentPair.rate) * 100;
-      markets.push({
-        pair: key,
-        value: currency.rate,
-        change: `${change >= 0 ? '+' : '-'}${Math.abs(change).toFixed(3)}%`,
-        direction: change >= 0 ? 'up' : 'down',
-      });
-      countPairsWithDiffRates++;
-    } else {
-      pairRates.set(key, {
-        rate: currency.rate,
-      });
-    }
-  }
 
   useEffect(() => {
     if (!groupRef.current) return;
@@ -86,6 +56,43 @@ const TickerGroup = ({ hidden = false }: TickerGroupProps) => {
 };
 
 export default function LiveMarketsBar() {
+  const { data } = useRequestRates({
+    ...getPeriodDates(TIMEFRAMES.day),
+    base: 'USD',
+  });
+  let countPairsWithDiffRates = 0;
+  const pairRates = new Map<string, { rate: number }>();
+  const [markets, setMarkets] = useState<Market[]>([]);
+
+  useEffect(() => {
+    const markets: Market[] = [];
+    if (data && data.length > 0) {
+      for (const currency of data) {
+        if (countPairsWithDiffRates === MAX_DIFF_PAIR_RATES_COUNT) {
+          setMarkets(markets);
+          break;
+        }
+        const key = `${currency.base}/${currency.quote}`;
+        const currentPair = pairRates.get(key);
+        if (currentPair && currency.rate !== currentPair.rate) {
+          const change =
+            ((currency.rate - currentPair.rate) / currentPair.rate) * 100;
+          markets.push({
+            pair: key,
+            value: currency.rate,
+            change: `${change >= 0 ? '+' : '-'}${Math.abs(change).toFixed(3)}%`,
+            direction: change >= 0 ? 'up' : 'down',
+          });
+          countPairsWithDiffRates++;
+        } else {
+          pairRates.set(key, {
+            rate: currency.rate,
+          });
+        }
+      }
+    }
+  }, [data]);
+
   return (
     <section className="live-markets-bar">
       <div className="live-badge">
@@ -95,8 +102,8 @@ export default function LiveMarketsBar() {
 
       <div className="ticker-wrapper">
         <div className="ticker-track">
-          <TickerGroup />
-          <TickerGroup hidden />
+          <TickerGroup markets={markets} />
+          <TickerGroup markets={markets} hidden />
         </div>
       </div>
     </section>

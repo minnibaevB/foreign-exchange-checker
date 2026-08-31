@@ -1,36 +1,57 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { getRates, type GetRatesParams, type RatesResponse } from '../requests';
 
 type UseRatesProps = Partial<GetRatesParams>;
 
-function useRequestRates({ from, to, base, quotes }: UseRatesProps) {
-  //нужно сделать очередь, так как вызов в коде может быть несколько
+const cache = new Map<string, RatesResponse[]>();
+const pending = new Map<string, Promise<RatesResponse[]>>();
 
+function useRequestRates({ from, to, base, quotes }: UseRatesProps) {
   const [data, setData] = useState<RatesResponse[] | null>(null);
   const [error, setError] = useState<Error | null>(null);
-  const memoRef = useRef(new Map());
-  const stringParam = JSON.stringify({ from, to, base, quotes });
+  const key = JSON.stringify({ from, to, base, quotes });
+  const requestRates = async () => {
+    const cached = cache.get(key);
 
-  useEffect(() => {
-    if (memoRef.current.has(stringParam)) {
-      const data = memoRef.current.get(stringParam);
-      setData(data);
-    } else {
-      async function load() {
-        try {
-          const data = await getRates({ from, to, base, quotes });
-          setData(data);
-          memoRef.current.set(stringParam, data);
-        } catch (error) {
-          setError(error instanceof Error ? error : new Error('Unknown error'));
-        }
+    if (cached) {
+      setData(cached);
+      return;
+    }
+
+    const existingRequest = pending.get(key);
+
+    if (existingRequest) {
+      try {
+        const response = await existingRequest;
+        setData(response);
+      } catch (error) {
+        setError(error instanceof Error ? error : new Error('Unknown error'));
       }
 
-      load();
+      return;
     }
+
+    const request = getRates({ from, to, base, quotes });
+
+    pending.set(key, request);
+
+    try {
+      const response = await request;
+
+      cache.set(key, response);
+      setData(response);
+    } catch (error) {
+      setError(error instanceof Error ? error : new Error('Unknown error'));
+    } finally {
+      pending.delete(key);
+    }
+  };
+
+  useEffect(() => {
+    requestRates();
   }, [from, to, base, quotes]);
 
-  return { data, error };
+  return { data };
 }
 
 export default useRequestRates;

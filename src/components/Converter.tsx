@@ -17,6 +17,8 @@ export default function Converter() {
   const [isFavorited, setIsFavorited] = useState<boolean>(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  console.log(currencyRates, 'currencyRates');
+
   useEffect(() => {
     if (currencyRates) {
       const { rate } = currencyRates[currencyRates.length - 1];

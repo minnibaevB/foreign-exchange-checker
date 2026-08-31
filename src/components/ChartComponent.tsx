@@ -18,11 +18,13 @@ export default function ChartComponent() {
   const [activeTimeframe, setActiveTimeframe] = useState<timeFrameType>(
     TIMEFRAMES.mounth,
   );
+
   const { currency } = useCurrency();
   const { data } = useRequestRates({
     ...getPeriodDates(activeTimeframe),
     ...currency,
   });
+
   return (
     <>
       {/* Stats and timeframes card below tabs */}
@@ -65,8 +67,7 @@ export default function ChartComponent() {
       <div className="chart-card" data-node-id="75:510">
         <div className="chart-header">
           <h2 className="chart-title">
-            {/* {sendCurrency.code}/{receiveCurrency.code} */}
-            USD/EUR
+            {currency.base}/{currency.quotes}
           </h2>
           <p className="chart-meta">
             <span>0.8612</span> · MAY 14 16:00 CET
