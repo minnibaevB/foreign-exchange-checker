@@ -106,13 +106,21 @@ export default function ChartComponent() {
         </div>
 
         <div className="chart-body" data-node-id="94:1737">
-          <>
-            {isLoading && <p>Loading...</p>}
-            {error && <p>Error: {error.message}</p>}
-            {!isLoading && !error && (
-              <Chart data={data} activeTimeframe={activeTimeframe} />
-            )}
-          </>
+          {data?.length === 0 && (
+            <div className="empty-state">
+              <p className="empty-state-title">No chart data available</p>
+
+              <p className="empty-state-description">
+                We couldn't load rate history for {currency.base}/
+                {currency.quotes} right now. This usually clears up in a minute.
+              </p>
+            </div>
+          )}
+          {isLoading && <p>Loading...</p>}
+          {error && <p>Error: {error.message}</p>}
+          {!isLoading && !error && data && data.length > 0 && (
+            <Chart data={data} activeTimeframe={activeTimeframe} />
+          )}
         </div>
       </div>
     </>

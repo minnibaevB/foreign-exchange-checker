@@ -17,7 +17,10 @@ type CurrencyContextValue = {
 const BASE_CURRENCY = 'USD';
 const QUOTES_CURRENCY = 'EUR';
 
-const RatesContext = createContext<RatesResponse[] | null>(null);
+const RatesContext = createContext<{
+  data: RatesResponse[] | null;
+  error: Error | null;
+} | null>(null);
 const CurrencyContext = createContext<CurrencyContextValue | null>(null);
 
 export function RatesProvider({ children }: { children: React.ReactNode }) {
@@ -25,14 +28,14 @@ export function RatesProvider({ children }: { children: React.ReactNode }) {
     base: BASE_CURRENCY,
     quotes: QUOTES_CURRENCY,
   });
-  const { data } = useRequestRates({
+  const { data, error } = useRequestRates({
     ...getPeriodDates(TIMEFRAMES.mounth),
     base: currency.base,
     quotes: currency.quotes,
   });
 
   return (
-    <RatesContext value={data}>
+    <RatesContext value={{ data, error }}>
       <CurrencyContext value={{ currency, setCurrency }}>
         {children}
       </CurrencyContext>
@@ -41,7 +44,13 @@ export function RatesProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useRates() {
-  return useContext(RatesContext);
+  const context = useContext(RatesContext);
+
+  if (!context) {
+    throw new Error('useRates must be used within RatesProvider');
+  }
+
+  return context;
 }
 
 export function useCurrency() {

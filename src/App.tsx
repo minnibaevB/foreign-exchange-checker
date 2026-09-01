@@ -9,6 +9,7 @@ import { Tab, Tabs, TAB_VALUES } from './components/Tabs';
 import LiveMarketsBar from './components/LiveMarketsBar';
 import Converter from './components/Converter';
 import ChartComponent from './components/ChartComponent';
+import { currencies, popularCurrencies } from './mock';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<string>(TAB_VALUES.HISTORY);
@@ -27,7 +28,8 @@ export default function App() {
           <span className="logo-text">FX_CHECKER</span>
         </div>
         <div className="header-info" data-node-id="75:183">
-          55 CURRENCIES · EOD · ECB DATA
+          {currencies.length + popularCurrencies.length} CURRENCIES · EOD · ECB
+          DATA
         </div>
       </header>
 

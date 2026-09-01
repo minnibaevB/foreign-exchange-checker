@@ -36,6 +36,11 @@ import uaFlag from './assets/images/flags/ua.webp';
 import usFlag from './assets/images/flags/us.webp';
 import zaFlag from './assets/images/flags/za.webp';
 
+export type Currency = {
+  code: string;
+  name: string;
+};
+
 export const flagMap: Record<string, string> = {
   AED: aeFlag,
   ARS: arFlag,
@@ -76,4 +81,52 @@ export const flagMap: Record<string, string> = {
   ZAR: zaFlag,
 };
 
-export const currencies = Object.keys(flagMap);
+export const currencyNames: Record<string, string> = {
+  AED: 'United Arab Emirates Dirham',
+  ARS: 'Argentine Peso',
+  AUD: 'Australian Dollar',
+  BGN: 'Bulgarian Lev',
+  BRL: 'Brazilian Real',
+  CAD: 'Canadian Dollar',
+  CHF: 'Swiss Franc',
+  CNY: 'Chinese Yuan',
+  CZK: 'Czech Koruna',
+  DKK: 'Danish Krone',
+  EGP: 'Egyptian Pound',
+  HKD: 'Hong Kong Dollar',
+  HUF: 'Hungarian Forint',
+  IDR: 'Indonesian Rupiah',
+  INR: 'Indian Rupee',
+  ISK: 'Icelandic Króna',
+  JPY: 'Japanese Yen',
+  KRW: 'South Korean Won',
+  MXN: 'Mexican Peso',
+  MYR: 'Malaysian Ringgit',
+  NOK: 'Norwegian Krone',
+  NZD: 'New Zealand Dollar',
+  PHP: 'Philippine Peso',
+  PLN: 'Polish Złoty',
+  RON: 'Romanian Leu',
+  RUB: 'Russian Ruble',
+  SAR: 'Saudi Riyal',
+  SEK: 'Swedish Krona',
+  SGD: 'Singapore Dollar',
+  THB: 'Thai Baht',
+  TRY: 'Turkish Lira',
+  TWD: 'New Taiwan Dollar',
+  UAH: 'Ukrainian Hryvnia',
+  ZAR: 'South African Rand',
+};
+
+export const currencies: Currency[] = Object.entries(currencyNames).map(
+  ([code, name]) => ({
+    code,
+    name,
+  }),
+);
+
+export const popularCurrencies: Currency[] = [
+  { code: 'USD', name: 'US Dollar' },
+  { code: 'EUR', name: 'Euro' },
+  { code: 'GBP', name: 'British Pound' },
+];

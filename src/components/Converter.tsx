@@ -9,7 +9,7 @@ import { formatAmount, parseAmount } from '../helpers';
 export default function Converter() {
   // UI presentation states
   const { currency, setCurrency } = useCurrency();
-  const currencyRates = useRates();
+  const { data, error } = useRates();
   const [sendAmount, setSendAmount] = useState<string>('1000');
   const [reciveAmount, setReciveAmount] = useState<string>('0');
   const [currentRate, setcurrentRate] = useState<number | null>(null);
@@ -17,12 +17,12 @@ export default function Converter() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (currencyRates) {
-      const { rate } = currencyRates[currencyRates.length - 1];
+    if (data && data.length > 0) {
+      const { rate } = data[data.length - 1];
       setcurrentRate(rate);
       setReciveAmount(formatAmount(parseAmount(sendAmount) * rate));
     }
-  }, [currencyRates]);
+  }, [data]);
 
   const handleSendAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Keep numbers and commas only
@@ -178,6 +178,11 @@ export default function Converter() {
           </div>
         </div>
       </div>
+      {error && (
+        <div className="error-message">
+          <p>Error fetching rates: {error.message}</p>
+        </div>
+      )}
       {/* Dynamic presentation notification toast */}
       {toastMessage && <div className="toast-notification">{toastMessage}</div>}
     </div>
