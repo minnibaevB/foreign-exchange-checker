@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import starIcon from '../assets/images/icon-star.svg';
 import starFilledIcon from '../assets/images/icon-star-filled.svg';
 import exchangeIcon from '../assets/images/icon-exchange.svg';
-// import { CURRENCIES } from '../mock';
 import Picker from './Picker';
 import { useCurrency, useRates } from '../context/RatesContext';
 import { formatAmount, parseAmount } from '../helpers';
@@ -11,18 +10,16 @@ export default function Converter() {
   // UI presentation states
   const { currency, setCurrency } = useCurrency();
   const currencyRates = useRates();
-  const [sendAmount, setSendAmount] = useState<string>(formatAmount(1000));
+  const [sendAmount, setSendAmount] = useState<string>('1000');
   const [reciveAmount, setReciveAmount] = useState<string>('0');
-  const [currencyRate, setCurrencyRate] = useState<number | null>(null);
-  const [isFavorited, setIsFavorited] = useState<boolean>(true);
+  const [currentRate, setcurrentRate] = useState<number | null>(null);
+  const [isFavorited, setIsFavorited] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  console.log(currencyRates, 'currencyRates');
 
   useEffect(() => {
     if (currencyRates) {
       const { rate } = currencyRates[currencyRates.length - 1];
-      setCurrencyRate(rate);
+      setcurrentRate(rate);
       setReciveAmount(formatAmount(parseAmount(sendAmount) * rate));
     }
   }, [currencyRates]);
@@ -31,7 +28,7 @@ export default function Converter() {
     // Keep numbers and commas only
     const val = e.target.value.replace(/[^0-9.]/g, '');
     setSendAmount(val);
-    setReciveAmount(formatAmount(parseAmount(val) * (currencyRate ?? 1)));
+    setReciveAmount(formatAmount(parseAmount(val) * (currentRate ?? 1)));
   };
 
   const handleSendAmountBlur = () => {
@@ -42,7 +39,7 @@ export default function Converter() {
   const handleSwapCurrencies = () => {
     //change base and quotes
     const previousSendAmount = sendAmount;
-    setSendAmount(reciveAmount);
+    setSendAmount(formatAmount(parseAmount(reciveAmount), 0));
     setReciveAmount(previousSendAmount);
     setCurrency({ base: currency.quotes, quotes: currency.base });
     triggerToast(`Swapped send and receive currencies!`);
@@ -53,11 +50,11 @@ export default function Converter() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // const handleLogConversion = () => {
-  //   triggerToast(
-  //     `Logged conversion: ${sendAmount} ${sendCurrency.code} → ${receiveAmountFormatted} ${receiveCurrency.code} at rate ${currentRate.toFixed(4)}`,
-  //   );
-  // };
+  const handleLogConversion = () => {
+    triggerToast(
+      `Logged conversion: ${sendAmount}  → ${formatAmount(parseAmount(reciveAmount))} at rate ${currentRate?.toFixed(4)}`,
+    );
+  };
 
   return (
     <div className="converter-section">
@@ -145,13 +142,11 @@ export default function Converter() {
 
         {/* Bottom info row */}
         <div className="converter-bottom" data-node-id="75:466">
-          {/* <p className="rate-info-text" data-node-id="75:471">
-            1 {sendCurrency.code} = {currentRate.toFixed(4)}{' '}
-            {receiveCurrency.code}
-          </p> */}
+          <p className="rate-info-text" data-node-id="75:471">
+            1 {currency.base} = {formatAmount(currentRate, 4)} {currency.quotes}
+          </p>
 
           <div className="converter-actions">
-            {/* FAVORITED togglable button */}
             <button
               className={`action-button ${isFavorited ? 'primary' : 'secondary'}`}
               onClick={() => {
@@ -175,7 +170,7 @@ export default function Converter() {
             {/* LOG CONVERSION button */}
             <button
               className="action-button outline"
-              // onClick={handleLogConversion}
+              onClick={handleLogConversion}
               data-node-id="178:1345"
             >
               LOG CONVERSION

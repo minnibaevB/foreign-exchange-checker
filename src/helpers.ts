@@ -52,11 +52,14 @@ export function getPeriodDates(tf: timeFrameType) {
   };
 }
 
-export const formatAmount = (num: number): string => {
-  if (num === 0) return '0';
+export const formatAmount = (
+  num: number | null,
+  fractionDigits: number = 2,
+): string => {
+  if (num === 0 || num === null) return '0';
   return num.toLocaleString('en-US', {
     minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
+    maximumFractionDigits: fractionDigits,
   });
 };
 

@@ -56,7 +56,7 @@ const TickerGroup = ({ markets, hidden = false }: TickerGroupProps) => {
 };
 
 export default function LiveMarketsBar() {
-  const { data } = useRequestRates({
+  const { data, isLoading, error } = useRequestRates({
     ...getPeriodDates(TIMEFRAMES.day),
     base: 'USD',
   });
@@ -101,10 +101,14 @@ export default function LiveMarketsBar() {
       </div>
 
       <div className="ticker-wrapper">
-        <div className="ticker-track">
-          <TickerGroup markets={markets} />
-          <TickerGroup markets={markets} hidden />
-        </div>
+        {isLoading && <p>Loading...</p>}
+        {error && <p>Error: {error.message}</p>}
+        {!isLoading && !error && (
+          <div className="ticker-track">
+            <TickerGroup markets={markets} />
+            <TickerGroup markets={markets} hidden />
+          </div>
+        )}
       </div>
     </section>
   );
