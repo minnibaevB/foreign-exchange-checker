@@ -1,8 +1,9 @@
 import { useLog } from '../context/LogContext';
 import { formatRelativeTime } from '../helpers';
+import iconDelete from '../assets/images/icon-delete.svg';
 
 export default function Log() {
-  const { logs, removeLog } = useLog();
+  const { logs, removeLog, clearLogs } = useLog();
 
   return logs.length === 0 ? (
     <div className="empty-state">
@@ -21,7 +22,9 @@ export default function Log() {
           <span className="panel-count">{logs.length} LOGGED</span>
 
           {logs.length > 0 && (
-            <button className="clear-log-button">CLEAR ALL</button>
+            <button onClick={() => clearLogs()} className="clear-log-button">
+              CLEAR ALL
+            </button>
           )}
         </div>
       </div>
@@ -48,7 +51,7 @@ export default function Log() {
               onClick={() => removeLog(log.id)}
               aria-label="Remove log"
             >
-              ♧
+              <img src={iconDelete} />
             </button>
           </div>
         ))}

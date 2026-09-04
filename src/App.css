@@ -1003,6 +1003,8 @@
   font-size: 11px;
   letter-spacing: 0.8px;
   text-transform: uppercase;
+  padding-right: 8px;
+  min-width: 64px;
 }
 
 .log-pair {

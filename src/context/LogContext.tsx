@@ -13,7 +13,6 @@ interface Amount {
   reciveAmount: string;
 }
 
-// Тип для записи в логе
 export interface LogEntry {
   id: string;
   timestamp: string;
@@ -26,7 +25,8 @@ type LogAction =
       type: 'ADD_LOG';
       payload: { pair: CurrencyPair; amount: Amount };
     }
-  | { type: 'REMOVE_LOG'; payload: { id: string } };
+  | { type: 'REMOVE_LOG'; payload: { id: string } }
+  | { type: 'ClEAR_LOGS' };
 
 const STORAGE_KEY = 'app_logs';
 
@@ -55,6 +55,9 @@ const logReducer = (state: LogEntry[], action: LogAction): LogEntry[] => {
     case 'REMOVE_LOG': {
       return state.filter((log) => log.id !== action.payload.id);
     }
+    case 'ClEAR_LOGS': {
+      return [];
+    }
     default:
       return state;
   }
@@ -64,6 +67,7 @@ interface LogContextType {
   logs: LogEntry[];
   addLog: (pair: CurrencyPair, amount: Amount) => void;
   removeLog: (id: string) => void;
+  clearLogs: () => void;
 }
 
 const LogContext = createContext<LogContextType | undefined>(undefined);
@@ -87,8 +91,12 @@ export const LogProvider = ({ children }: { children: ReactNode }) => {
     dispatch({ type: 'REMOVE_LOG', payload: { id } });
   };
 
+  const clearLogs = () => {
+    dispatch({ type: 'ClEAR_LOGS' });
+  };
+
   return (
-    <LogContext.Provider value={{ logs, addLog, removeLog }}>
+    <LogContext.Provider value={{ logs, addLog, removeLog, clearLogs }}>
       {children}
     </LogContext.Provider>
   );
@@ -97,7 +105,7 @@ export const LogProvider = ({ children }: { children: ReactNode }) => {
 export const useLog = () => {
   const context = useContext(LogContext);
   if (!context) {
-    throw new Error('useLog должен использоваться внутри LogProvider');
+    throw new Error('useLog must be used within LogProvider');
   }
   return context;
 };
