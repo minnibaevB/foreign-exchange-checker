@@ -1,7 +1,4 @@
 import { createContext, useContext, useState } from 'react';
-import useRequestRates from '../hooks/useRequestRates';
-import { getPeriodDates } from '../helpers';
-import { TIMEFRAMES } from '../components/ChartComponent';
 
 type Currency = {
   base: string;
