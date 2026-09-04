@@ -26,7 +26,7 @@ type LogAction =
       payload: { pair: CurrencyPair; amount: Amount };
     }
   | { type: 'REMOVE_LOG'; payload: { id: string } }
-  | { type: 'ClEAR_LOGS' };
+  | { type: 'CLEAR_LOGS' };
 
 const STORAGE_KEY = 'app_logs';
 
@@ -55,7 +55,7 @@ const logReducer = (state: LogEntry[], action: LogAction): LogEntry[] => {
     case 'REMOVE_LOG': {
       return state.filter((log) => log.id !== action.payload.id);
     }
-    case 'ClEAR_LOGS': {
+    case 'CLEAR_LOGS': {
       return [];
     }
     default:
@@ -92,7 +92,7 @@ export const LogProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const clearLogs = () => {
-    dispatch({ type: 'ClEAR_LOGS' });
+    dispatch({ type: 'CLEAR_LOGS' });
   };
 
   return (
