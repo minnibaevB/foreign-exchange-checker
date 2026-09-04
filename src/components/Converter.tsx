@@ -3,26 +3,41 @@ import starIcon from '../assets/images/icon-star.svg';
 import starFilledIcon from '../assets/images/icon-star-filled.svg';
 import exchangeIcon from '../assets/images/icon-exchange.svg';
 import Picker from './Picker';
-import { useCurrency, useRates } from '../context/RatesContext';
+import { useCurrency } from '../context/CurrencyContext';
 import { formatAmount, parseAmount } from '../helpers';
+import useRequestRates from '../hooks/useRequestRates';
+import { useFavorites } from '../context/FavoriteContext';
+import { useLog } from '../context/LogContext';
 
 export default function Converter() {
-  // UI presentation states
   const { currency, setCurrency } = useCurrency();
-  const { data, error } = useRates();
+  const { data, error } = useRequestRates({
+    base: currency.base,
+    quotes: currency.quotes,
+  });
+  const { addLog } = useLog();
+  const { toggleFavorite, isFavorite } = useFavorites();
   const [sendAmount, setSendAmount] = useState<string>('1000');
   const [reciveAmount, setReciveAmount] = useState<string>('0');
   const [currentRate, setcurrentRate] = useState<number | null>(null);
-  const [isFavorited, setIsFavorited] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isLogged, setIsLogged] = useState(false);
+  const isFavorited = isFavorite({
+    base: currency.base,
+    quote: currency.quotes,
+  });
 
   useEffect(() => {
     if (data && data.length > 0) {
-      const { rate } = data[data.length - 1];
+      const { rate } = data[0];
       setcurrentRate(rate);
       setReciveAmount(formatAmount(parseAmount(sendAmount) * rate));
     }
   }, [data]);
+
+  useEffect(() => {
+    setIsLogged(false);
+  }, [currency]);
 
   const handleSendAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Keep numbers and commas only
@@ -51,6 +66,14 @@ export default function Converter() {
   };
 
   const handleLogConversion = () => {
+    addLog(
+      {
+        base: currency.base,
+        quote: currency.quotes,
+      },
+      { sendAmount, reciveAmount },
+    );
+    setIsLogged(true);
     triggerToast(
       `Logged conversion: ${sendAmount}  → ${formatAmount(parseAmount(reciveAmount))} at rate ${currentRate?.toFixed(4)}`,
     );
@@ -150,7 +173,10 @@ export default function Converter() {
             <button
               className={`action-button ${isFavorited ? 'primary' : 'secondary'}`}
               onClick={() => {
-                setIsFavorited(!isFavorited);
+                toggleFavorite({
+                  base: currency.base,
+                  quote: currency.quotes,
+                });
                 triggerToast(
                   isFavorited
                     ? 'Removed from favorites!'
@@ -170,10 +196,11 @@ export default function Converter() {
             {/* LOG CONVERSION button */}
             <button
               className="action-button outline"
+              disabled={isLogged}
               onClick={handleLogConversion}
               data-node-id="178:1345"
             >
-              LOG CONVERSION
+              {isLogged ? 'Logged' : 'LOG CONVERSION'}
             </button>
           </div>
         </div>

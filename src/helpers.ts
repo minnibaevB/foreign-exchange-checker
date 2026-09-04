@@ -68,3 +68,46 @@ export const parseAmount = (val: string): number => {
   const parsed = parseFloat(clean);
   return isNaN(parsed) ? 0 : parsed;
 };
+
+const formatViewRtf = (rtf: string) => {
+  console.log(rtf);
+  const splitRtf = rtf.split(' ');
+  const numberRtf = splitRtf[0];
+  const firstLetterRtf = splitRtf[1][0];
+  return `${numberRtf}${firstLetterRtf.toUpperCase()}`;
+};
+
+export function formatRelativeTime(timestamp: number): string {
+  const now = Date.now();
+  const date = new Date(now);
+  const diffInSeconds = Math.floor((timestamp - now) / 1000);
+  const absSeconds = Math.abs(diffInSeconds);
+
+  if (absSeconds < 45) {
+    return 'just now';
+  }
+
+  const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+
+  if (absSeconds < 3600) {
+    return formatViewRtf(rtf.format(Math.round(diffInSeconds / 60), 'minute'));
+  }
+
+  if (absSeconds < 86400) {
+    return formatViewRtf(rtf.format(Math.round(diffInSeconds / 3600), 'hour'));
+  }
+
+  if (absSeconds < 2592000) {
+    return formatViewRtf(rtf.format(Math.round(diffInSeconds / 86400), 'day'));
+  }
+
+  if (absSeconds < 31536000) {
+    return date.toLocaleDateString('en', { day: 'numeric', month: 'short' });
+  }
+
+  return date.toLocaleDateString('en', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}

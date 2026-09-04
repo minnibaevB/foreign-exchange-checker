@@ -10,6 +10,9 @@ import LiveMarketsBar from './components/LiveMarketsBar';
 import Converter from './components/Converter';
 import ChartComponent from './components/ChartComponent';
 import { currencies, popularCurrencies } from './mock';
+import { Compare } from './components/Compare';
+import Favorites from './components/Favorites';
+import Log from './components/Log';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<string>(TAB_VALUES.HISTORY);
@@ -47,7 +50,8 @@ export default function App() {
               <ChartComponent />
             </Tab>
             <Tab value={TAB_VALUES.COMPARE} title="COMPARE">
-              <div
+              <Compare />
+              {/* <div
                 style={{ padding: '40px 0', textAlign: 'center', opacity: 0.7 }}
               >
                 <p style={{ fontSize: '18px', marginBottom: '8px' }}>
@@ -62,10 +66,11 @@ export default function App() {
                   Select multiple target currencies to compare exchange rates
                   simultaneously.
                 </p>
-              </div>
+              </div> */}
             </Tab>
             <Tab value={TAB_VALUES.FAVORITES} title="FAVORITES">
-              <div
+              <Favorites />
+              {/* <div
                 style={{ padding: '40px 0', textAlign: 'center', opacity: 0.7 }}
               >
                 <p style={{ fontSize: '18px', marginBottom: '8px' }}>
@@ -79,11 +84,12 @@ export default function App() {
                 >
                   You currently have 10 favorited rates saved in your user
                   account.
-                </p>
-              </div>
+                </p> */}
+              {/* </div> */}
             </Tab>
             <Tab value={TAB_VALUES.LOG} title="LOG">
-              <div
+              <Log />
+              {/* <div
                 style={{ padding: '40px 0', textAlign: 'center', opacity: 0.7 }}
               >
                 <p style={{ fontSize: '18px', marginBottom: '8px' }}>
@@ -98,7 +104,7 @@ export default function App() {
                   Review your conversion history logs, tracking the last 8
                   entries.
                 </p>
-              </div>
+              </div> */}
             </Tab>
           </Tabs>
         </div>

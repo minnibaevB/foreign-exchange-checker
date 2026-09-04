@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Chart from './Chart';
 import useRequestRates from '../hooks/useRequestRates';
 import { formatAmount, getPeriodDates } from '../helpers';
-import { useCurrency } from '../context/RatesContext';
+import { useCurrency } from '../context/CurrencyContext';
 
 export const TIMEFRAMES = {
   day: '1D',
