@@ -13,9 +13,13 @@ import { currencies, popularCurrencies } from './mock';
 import { Compare } from './components/Compare';
 import Favorites from './components/Favorites';
 import Log from './components/Log';
+import { useFavorites } from './context/FavoriteContext';
+import { useLog } from './context/LogContext';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<string>(TAB_VALUES.HISTORY);
+  const { favorites } = useFavorites();
+  const { logs } = useLog();
 
   return (
     <div className="app-container" data-node-id="75:175">
@@ -45,10 +49,14 @@ export default function App() {
             <Tab value={TAB_VALUES.COMPARE} title="COMPARE">
               <Compare />
             </Tab>
-            <Tab value={TAB_VALUES.FAVORITES} title="FAVORITES">
+            <Tab
+              value={TAB_VALUES.FAVORITES}
+              title="FAVORITES"
+              badgeCount={favorites.length}
+            >
               <Favorites />
             </Tab>
-            <Tab value={TAB_VALUES.LOG} title="LOG">
+            <Tab value={TAB_VALUES.LOG} title="LOG" badgeCount={logs.length}>
               <Log />
             </Tab>
           </Tabs>

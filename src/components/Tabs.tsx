@@ -20,6 +20,7 @@ type TabProps = {
   children: ReactNode;
   active?: boolean;
   title: string;
+  badgeCount?: number;
 };
 
 type TabsProps = {
@@ -54,20 +55,24 @@ export function Tabs({ activeValue, onChange, children }: TabsProps) {
           }
 
           return (
-            <button
-              type="button"
-              role="tab"
-              className={`tab-button ${
-                child.props.value === activeValue ? 'active' : ''
-              }`}
-              onClick={() => onChange(child.props.value)}
-            >
-              {child.props.title}
-
+            <div className="tabs-wrap">
+              <button
+                type="button"
+                role="tab"
+                className={`tab-button ${
+                  child.props.value === activeValue ? 'active' : ''
+                }`}
+                onClick={() => onChange(child.props.value)}
+              >
+                {child.props.title}
+              </button>
+              {child.props.badgeCount && (
+                <span className="badge">{child.props.badgeCount}</span>
+              )}
               {child.props.value === activeValue && (
                 <div className="tab-underline" />
               )}
-            </button>
+            </div>
           );
         })}
       </div>
@@ -80,7 +85,12 @@ export function Tabs({ activeValue, onChange, children }: TabsProps) {
           onClick={() => setIsOpen((prev) => !prev)}
           aria-expanded={isOpen}
         >
-          <span>{activeTab?.props.title}</span>
+          <div>
+            <span>{activeTab?.props.title}</span>
+            {activeTab?.props.badgeCount && (
+              <span className="badge">{activeTab?.props.badgeCount}</span>
+            )}
+          </div>
 
           <span className={`tabs-mobile-chevron ${isOpen ? 'open' : ''}`}>
             ⌄
@@ -104,6 +114,9 @@ export function Tabs({ activeValue, onChange, children }: TabsProps) {
                   onClick={() => handleSelect(tab.props.value)}
                 >
                   {tab.props.title}
+                  {tab.props.badgeCount && (
+                    <span className="badge">{tab.props.badgeCount}</span>
+                  )}
                 </button>
               );
             })}

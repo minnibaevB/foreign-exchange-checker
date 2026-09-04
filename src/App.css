@@ -400,6 +400,12 @@
   display: none;
 }
 
+.tabs-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
 .tab-button {
   font-family: var(--font-mono);
   font-size: 1.6rem;
@@ -1119,6 +1125,18 @@
   animation: panel-spin 0.7s linear infinite;
 }
 
+.badge {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  color: var(--color-lime-500);
+  background-color: var(--color-lime-800);
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
 @keyframes panel-spin {
   to {
     transform: rotate(360deg);
@@ -1311,6 +1329,10 @@
       border-radius 0.2s;
   }
 
+  .tabs-mobile-trigger .badge {
+    margin-left: 1rem;
+  }
+
   .tabs-mobile-trigger:hover {
     border-color: #505052;
   }
@@ -1381,6 +1403,10 @@
     transition:
       background-color 0.15s,
       color 0.15s;
+  }
+
+  .tabs-mobile-option .badge {
+    margin-left: 1rem;
   }
 
   .tabs-mobile-option:hover {
