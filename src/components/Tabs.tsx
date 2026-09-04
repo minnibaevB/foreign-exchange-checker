@@ -66,7 +66,7 @@ export function Tabs({ activeValue, onChange, children }: TabsProps) {
               >
                 {child.props.title}
               </button>
-              {child.props.badgeCount && (
+              {(child.props.badgeCount || child.props.badgeCount === 0) && (
                 <span className="badge">{child.props.badgeCount}</span>
               )}
               {child.props.value === activeValue && (
@@ -85,9 +85,10 @@ export function Tabs({ activeValue, onChange, children }: TabsProps) {
           onClick={() => setIsOpen((prev) => !prev)}
           aria-expanded={isOpen}
         >
-          <div>
+          <div className="tabs-wrap">
             <span>{activeTab?.props.title}</span>
-            {activeTab?.props.badgeCount && (
+            {(activeTab?.props.badgeCount ||
+              activeTab?.props.badgeCount === 0) && (
               <span className="badge">{activeTab?.props.badgeCount}</span>
             )}
           </div>
@@ -114,7 +115,7 @@ export function Tabs({ activeValue, onChange, children }: TabsProps) {
                   onClick={() => handleSelect(tab.props.value)}
                 >
                   {tab.props.title}
-                  {tab.props.badgeCount && (
+                  {(tab.props.badgeCount || tab.props.badgeCount === 0) && (
                     <span className="badge">{tab.props.badgeCount}</span>
                   )}
                 </button>
